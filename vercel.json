@@ -1,1 +1,1 @@
-{"rewrites": [{"source": "/", "destination": "/papadam-food.html"}]}
+{"rewrites": [{"source": "/assets/:dir(css|js|img)/:file", "destination": "/assets/:file"}]}
