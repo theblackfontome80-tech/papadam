@@ -45,6 +45,17 @@
     .btn--block { width: 100%; margin-top: 14px; }
     .error { margin: 12px 0 0; color: var(--danger); font-weight: 600; font-size: .92rem; }
 
+    /* Choix du restaurant */
+    .sites { display: grid; gap: 12px; margin-top: 4px; }
+    .site-btn { display: flex; align-items: center; gap: 14px; width: 100%; padding: 18px; border-radius: 18px; border: 2px solid var(--line); background: #fffdf8; text-align: left; color: var(--ink); }
+    .site-btn:hover, .site-btn:focus-visible { border-color: var(--spice); outline: none; }
+    .site-btn b { display: block; font: 650 1.45rem/1.1 var(--f-display); }
+    .site-btn small { display: block; margin-top: 3px; color: var(--muted); font-size: .85rem; }
+    .site-btn i { margin-left: auto; font-style: normal; font-size: 1.4rem; color: var(--spice); }
+    .site-btn__pin { flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: var(--ink); color: var(--on-dark); font-size: 1.3rem; }
+    .site-btn.is-last { border-color: var(--mustard); }
+    .top__switch { display: inline-block; margin-top: 6px; padding: 0; border: 0; background: none; font: 700 .78rem/1 var(--f-body); color: var(--spice); text-decoration: underline; text-underline-offset: 3px; }
+
     /* Barre du haut */
     .top { position: sticky; top: 0; z-index: 20; background: rgba(244,236,221,.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
     .top__row { display: flex; align-items: center; gap: 12px; padding: 12px 0 10px; }
@@ -128,13 +139,26 @@
     </form>
   </section>
 
+  <!-- ============ CHOIX DU RESTAURANT ============ -->
+  <section class="login" data-pick hidden>
+    <div class="login__card">
+      <h1>Quel restaurant ?</h1>
+      <p>Chaque restaurant a son propre menu et ses propres prix.</p>
+      <div class="sites">
+        <button class="site-btn" type="button" data-site="sahloul"><span class="site-btn__pin">📍</span><span><b>Sahloul</b><small>Modifier le menu de Sahloul</small></span><i>→</i></button>
+        <button class="site-btn" type="button" data-site="khezama"><span class="site-btn__pin">📍</span><span><b>Khezama</b><small>Modifier le menu de Khezama</small></span><i>→</i></button>
+      </div>
+      <button class="link" type="button" style="margin-top:18px" data-logout>Quitter</button>
+    </div>
+  </section>
+
   <!-- ============ ÉDITEUR ============ -->
   <div data-app hidden>
     <header class="top">
       <div class="wrap">
         <div class="top__row">
-          <h1 class="top__title">Menu Papadam<small>Même menu pour Sahloul et Khezama</small></h1>
-          <a class="link" href="/" target="_blank" rel="noopener">Voir le site</a>
+          <div class="top__title"><h1 style="font:inherit;margin:0" data-site-title>Menu</h1><button class="top__switch" type="button" data-switch>⇄ Changer de restaurant</button></div>
+          <a class="link" href="/" target="_blank" rel="noopener" data-view>Voir le site</a>
           <button class="link" type="button" data-logout>Quitter</button>
         </div>
         <nav class="chips" aria-label="Catégories" data-chips></nav>
@@ -162,6 +186,8 @@
     const $ = (s, c = document) => c.querySelector(s);
     const API = ['papadam.vercel.app', 'localhost', '127.0.0.1'].includes(location.hostname) ? '/api/save' : 'https://papadam.vercel.app/api/save';
     const PW_KEY = 'papadam-admin-pw';
+    const SITE_KEY = 'papadam-admin-site';
+    const SITES = { sahloul: 'Sahloul', khezama: 'Khezama' };
     const BADGES = ['Populaire', 'Signature', 'Nouveau', 'Épicé', 'Promo'];
 
     const store = {
@@ -183,6 +209,7 @@
     let saved = '';           // dernière version enregistrée (texte), pour détecter les changements
     let savedItems = new Map(); // id -> texte de l'article enregistré, pour surligner ce qui a changé
     let current = null;       // id de la catégorie affichée
+    let site = null;          // resto en cours de modification : 'sahloul' ou 'khezama'
     let photos = new Map();   // chemin -> { data (base64), url (aperçu) } en attente d'envoi
     let photoTarget = null;   // article qui reçoit la photo choisie
 
@@ -208,6 +235,7 @@
     /* ---------- Connexion ---------- */
     function showLogin(message) {
       $('[data-app]').hidden = true;
+      $('[data-pick]').hidden = true;
       $('[data-login]').hidden = false;
       const err = $('[data-login-error]');
       err.hidden = !message;
@@ -227,7 +255,7 @@
           $('[data-login]').hidden = true;
           $('[data-app]').hidden = false;
         } else {
-          start();
+          showPick();
         }
       } catch (err) {
         showLogin(err.message);
@@ -235,14 +263,39 @@
         btn.disabled = false; btn.textContent = 'Entrer';
       }
     });
-    $('[data-logout]').addEventListener('click', () => {
+    document.querySelectorAll('[data-logout]').forEach((b) => b.addEventListener('click', () => {
       if (isDirty() && !confirm('Des modifications ne sont pas enregistrées. Quitter quand même ?')) return;
       store.del(PW_KEY); password = ''; saved = JSON.stringify(menu); location.reload();
+    }));
+
+    /* ---------- Choix du restaurant ---------- */
+    function showPick() {
+      $('[data-login]').hidden = true;
+      $('[data-app]').hidden = true;
+      $('[data-pick]').hidden = false;
+      const last = store.get(SITE_KEY);
+      document.querySelectorAll('[data-site]').forEach((b) => b.classList.toggle('is-last', b.dataset.site === last));
+    }
+    document.querySelectorAll('[data-site]').forEach((b) => b.addEventListener('click', () => {
+      site = b.dataset.site;
+      store.set(SITE_KEY, site);
+      start();
+    }));
+    $('[data-switch]').addEventListener('click', () => {
+      if (isDirty() && !confirm('Des modifications ne sont pas enregistrées. Changer de restaurant quand même ?')) return;
+      photos.forEach((p) => URL.revokeObjectURL(p.url));
+      photos = new Map(); menu = null; saved = ''; site = null;
+      $('[data-editor]').innerHTML = '<p class="loading">Chargement du menu…</p>';
+      $('[data-chips]').innerHTML = '';
+      showPick();
+      scrollTo(0, 0);
     });
 
     /* ---------- Données ---------- */
     async function loadMenu() {
-      const res = await fetch(`/data/menu.json?t=${Date.now()}`, { cache: 'no-store' });
+      const get = (file) => fetch(`/data/${file}?t=${Date.now()}`, { cache: 'no-store' });
+      let res = await get(`menu-${site}.json`);
+      if (res.status === 404) res = await get('menu.json');
       if (!res.ok) throw new Error('Impossible de charger le menu.');
       return res.json();
     }
@@ -255,7 +308,11 @@
 
     async function start() {
       $('[data-login]').hidden = true;
+      $('[data-pick]').hidden = true;
       $('[data-app]').hidden = false;
+      $('[data-site-title]').textContent = `Menu ${SITES[site]}`;
+      $('[data-view]').href = `/${site}/`;
+      document.title = `Backstage · ${SITES[site]}`;
       try {
         menu = await loadMenu();
         remember();
@@ -517,7 +574,7 @@
       const used = new Set(menu.categories.flatMap((c) => c.items.map((i) => i.img && i.img.src.slice(1))));
       const images = [...photos].filter(([p]) => used.has(p)).map(([path, p]) => ({ path, data: p.data }));
       try {
-        const res = await api({ baseVersion: menu.version, menu: { categories: menu.categories }, images });
+        const res = await api({ site, baseVersion: menu.version, menu: { categories: menu.categories }, images });
         menu = res.menu;
         photos.forEach((p, path) => { if (!used.has(path)) URL.revokeObjectURL(p.url); });
         // On garde les aperçus locaux des nouvelles photos le temps que le site se mette à jour
@@ -526,7 +583,7 @@
         const partial = (res.results || []).filter((r) => !r.ok);
         toast(partial.length
           ? 'Enregistré, mais un des deux sites n’a pas pu être mis à jour. Prévenez le responsable.'
-          : 'Enregistré ✓ Le site sera à jour dans environ 1 minute.', partial.length > 0);
+          : `Enregistré ✓ Le menu de ${SITES[site]} sera à jour dans environ 1 minute.`, partial.length > 0);
       } catch (err) {
         if (err.status === 401) { store.del(PW_KEY); showLogin('Mot de passe incorrect. Reconnectez-vous (vos modifications sont gardées).'); }
         else toast(err.message || 'Enregistrement impossible. Vérifiez la connexion internet.', true);
@@ -540,7 +597,7 @@
 
     /* ---------- Démarrage ---------- */
     if (password) {
-      api({ action: 'check' }).then(start).catch((err) => { if (err.status === 401) store.del(PW_KEY); showLogin(err.status === 401 ? '' : err.message); });
+      api({ action: 'check' }).then(showPick).catch((err) => { if (err.status === 401) store.del(PW_KEY); showLogin(err.status === 401 ? '' : err.message); });
     } else {
       showLogin();
     }

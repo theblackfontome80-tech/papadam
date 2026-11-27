@@ -1,5 +1,5 @@
 /* =========================================================
-   PAPADAM — Menu généré depuis /data/menu.json
+   PAPADAM — Menu généré depuis /data/menu-<resto>.json
    Le fichier est modifié depuis le backstage (/admin).
    Si le chargement échoue, le menu écrit dans la page reste affiché.
    ========================================================= */
@@ -119,8 +119,11 @@
     dispatchEvent(new CustomEvent('papadam:menu'));
   }
 
-  fetch(`/data/menu.json?t=${Date.now()}`, { cache: 'no-store' })
-    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+  // Chaque resto a son menu : /data/menu-sahloul.json ou /data/menu-khezama.json
+  const site = (location.pathname.match(/^\/(sahloul|khezama)(\/|$)/) || [])[1];
+  const get = (file) => fetch(`/data/${file}?t=${Date.now()}`, { cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)));
+  (site ? get(`menu-${site}.json`).catch(() => get('menu.json')) : get('menu.json'))
     .then(render)
     .catch(() => { /* on garde le menu écrit dans la page */ });
 })();

@@ -2,14 +2,15 @@
    PAPADAM — Enregistrement du menu (fonction Vercel)
    POST /api/save
      { password, action: "check" }                       -> vérifie le mot de passe
-     { password, baseVersion, menu, images: [{path,data}] } -> enregistre le menu
+     { password, site, baseVersion, menu, images: [{path,data}] } -> enregistre le menu d'un resto
+       site : "sahloul" ou "khezama" (chaque resto a son propre menu et ses prix)
 
    Variables d'environnement (Vercel > Settings > Environment Variables) :
      ADMIN_PASSWORD  mot de passe du backstage
      GITHUB_TOKEN    clé GitHub (Contents : lecture/écriture sur les dépôts ci-dessous)
      GITHUB_REPOS    facultatif, dépôts séparés par des virgules
      GITHUB_BRANCH   facultatif, "main" par défaut
-   Le menu est écrit dans data/menu.json (et les photos dans media/) de chaque dépôt,
+   Le menu est écrit dans data/menu-<site>.json (et les photos dans media/) de chaque dépôt,
    ce qui met à jour papadam.vercel.app et papadam.rayantriki.com.
    ========================================================= */
 const crypto = require('crypto');
@@ -17,8 +18,9 @@ const crypto = require('crypto');
 const REPOS = (process.env.GITHUB_REPOS || 'theblackfontome80-tech/papadam,theblackfontome80-tech/papadam-food-site')
   .split(',').map((s) => s.trim()).filter(Boolean);
 const BRANCH = process.env.GITHUB_BRANCH || 'main';
-const ORIGINS = ['https://papadam.vercel.app', 'https://papadam.vercel.app'];
-const MENU_PATH = 'data/menu.json';
+const ORIGINS = ['https://papadam.vercel.app', 'https://papadam.rayantriki.com'];
+const SITES = { sahloul: 'Sahloul', khezama: 'Khezama' };
+const menuPath = (site) => `data/menu-${site}.json`;
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,59}$/;
 const IMG_SRC = /^\/(assets\/img|media)\/[a-z0-9][a-z0-9-]*\.(webp|jpg|jpeg|png)$/;
@@ -113,9 +115,9 @@ async function gh(path, { method = 'GET', body, raw = false } = {}) {
   return raw ? res.text() : res.json();
 }
 
-async function currentVersion(repo) {
+async function currentVersion(repo, path) {
   try {
-    const text = await gh(`/repos/${repo}/contents/${MENU_PATH}?ref=${encodeURIComponent(BRANCH)}`, { raw: true });
+    const text = await gh(`/repos/${repo}/contents/${path}?ref=${encodeURIComponent(BRANCH)}`, { raw: true });
     return JSON.parse(text).version || 0;
   } catch (e) {
     return 0;
@@ -169,18 +171,21 @@ module.exports = async (req, res) => {
 
     if (body.action === 'check') return res.status(200).json({ ok: true });
 
+    const site = String(body.site || '');
+    if (!Object.prototype.hasOwnProperty.call(SITES, site)) throw new HttpError(400, 'Choisissez le restaurant (Sahloul ou Khezama).');
+    const path = menuPath(site);
     const menu = cleanMenu(body.menu);
     const images = cleanImages(body.images);
 
-    const latest = await currentVersion(REPOS[0]);
+    const latest = await currentVersion(REPOS[0], path);
     if (latest && Number(body.baseVersion) !== latest) {
-      throw new HttpError(409, 'Le menu a été modifié depuis un autre appareil. Rechargez la page pour récupérer la dernière version, puis refaites vos changements.');
+      throw new HttpError(409, `Le menu de ${SITES[site]} a été modifié depuis un autre appareil. Rechargez la page pour récupérer la dernière version, puis refaites vos changements.`);
     }
 
     const version = Date.now();
     const out = { version, updated: new Date(version).toISOString(), categories: menu.categories };
-    const files = [{ path: MENU_PATH, content: JSON.stringify(out, null, 2) + '\n', encoding: 'utf-8' }, ...images];
-    const message = `Menu modifié depuis le backstage${images.length ? ` (+${images.length} photo${images.length > 1 ? 's' : ''})` : ''}`;
+    const files = [{ path, content: JSON.stringify(out, null, 2) + '\n', encoding: 'utf-8' }, ...images];
+    const message = `Menu ${SITES[site]} modifié depuis le backstage${images.length ? ` (+${images.length} photo${images.length > 1 ? 's' : ''})` : ''}`;
 
     const results = [];
     for (const repo of REPOS) {
@@ -192,7 +197,7 @@ module.exports = async (req, res) => {
       }
     }
     if (!results.some((r) => r.ok)) throw new HttpError(502, results[0].error);
-    return res.status(200).json({ ok: true, version, menu: out, results });
+    return res.status(200).json({ ok: true, site, version, menu: out, results });
   } catch (e) {
     const status = e.status || 500;
     return res.status(status).json({ error: status === 500 && !e.status ? 'Erreur inattendue.' : e.message });
