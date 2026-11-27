@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.papadamfood.tn/sitemap.xml
+Sitemap: https://papadam.vercel.app/sitemap.xml

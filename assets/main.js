@@ -330,7 +330,7 @@
   $('[data-map-load]', map)?.addEventListener('click', () => {
     const iframe = document.createElement('iframe');
     iframe.src = map.dataset.src;
-    iframe.title = 'Carte Google Maps : Papadam Food, Sahloul, Sousse';
+    iframe.title = 'Carte Google Maps : Papadam Food, Khezama, Sousse';
     iframe.loading = 'lazy';
     iframe.referrerPolicy = 'no-referrer-when-downgrade';
     iframe.allowFullscreen = true;
