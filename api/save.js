@@ -1,7 +1,7 @@
 /* =========================================================
    PAPADAM — Enregistrement du menu (fonction Vercel)
    POST /api/save
-     { password, name, action: "login" }   -> vérifie le mot de passe, renvoie une connexion
+     { password, action: "login" }         -> vérifie le mot de passe, renvoie une connexion
                                               temporaire (token, 12 h). Le mot de passe
                                               n'est jamais gardé sur le téléphone.
      { token, site, baseVersion, menu, images: [{path,data}] } -> enregistre le menu d'un resto
@@ -48,25 +48,22 @@ const sessionKey = () => crypto.createHash('sha256')
 const b64url = (buf) => Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const sign = (payload) => b64url(crypto.createHmac('sha256', sessionKey()).update(payload).digest());
 
-function makeToken(name) {
+function makeToken() {
   const exp = Date.now() + SESSION_HOURS * 3600 * 1000;
-  const payload = b64url(JSON.stringify({ n: name, e: exp }));
+  const payload = b64url(JSON.stringify({ e: exp }));
   return { token: `${payload}.${sign(payload)}`, exp };
 }
 
 function readToken(token) {
   const [payload, sig] = String(token || '').split('.');
-  if (!payload || !sig) return null;
+  if (!payload || !sig) return false;
   const a = Buffer.from(sig), b = Buffer.from(sign(payload));
-  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return false;
   try {
     const data = JSON.parse(Buffer.from(payload.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'));
-    return data.e > Date.now() ? cleanName(data.n) : null;
-  } catch (e) { return null; }
+    return data.e > Date.now();
+  } catch (e) { return false; }
 }
-
-// Prénom de l'employé : lettres, espaces, tirets (il apparaît dans l'historique des modifications)
-const cleanName = (v) => String(v || '').normalize('NFC').replace(/[^\p{L}\p{M} '-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 30);
 
 const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 
@@ -192,7 +189,7 @@ module.exports = async (req, res) => {
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
 
-    // 1) Connexion : mot de passe + prénom -> connexion temporaire
+    // 1) Connexion : mot de passe -> connexion temporaire
     if (body.action === 'login' || body.action === 'check') {
       if (!samePassword(String(body.password || '').trim(), String(process.env.ADMIN_PASSWORD).trim())) {
         fails.n += 1;
@@ -202,14 +199,11 @@ module.exports = async (req, res) => {
         throw new HttpError(401, 'Mot de passe incorrect.');
       }
       failures.delete(ip);
-      const name = cleanName(body.name);
-      if (!name) throw new HttpError(400, 'Indiquez votre prénom.');
-      return res.status(200).json({ ok: true, name, ...makeToken(name) });
+      return res.status(200).json({ ok: true, ...makeToken() });
     }
 
     // 2) Enregistrement : connexion temporaire obligatoire
-    const who = readToken(body.token);
-    if (!who) throw new HttpError(401, 'Connexion expirée. Reconnectez-vous.');
+    if (!readToken(body.token)) throw new HttpError(401, 'Connexion expirée. Reconnectez-vous.');
 
     const site = String(body.site || '');
     if (!Object.prototype.hasOwnProperty.call(SITES, site)) throw new HttpError(400, 'Choisissez le restaurant (Sahloul ou Khezama).');
@@ -225,7 +219,7 @@ module.exports = async (req, res) => {
     const version = Date.now();
     const out = { version, updated: new Date(version).toISOString(), categories: menu.categories };
     const files = [{ path, content: JSON.stringify(out, null, 2) + '\n', encoding: 'utf-8' }, ...images];
-    const message = `Menu ${SITES[site]} modifié par ${who} (backstage)${images.length ? ` (+${images.length} photo${images.length > 1 ? 's' : ''})` : ''}`;
+    const message = `Menu ${SITES[site]} modifié depuis le backstage${images.length ? ` (+${images.length} photo${images.length > 1 ? 's' : ''})` : ''}`;
 
     const results = [];
     for (const repo of REPOS) {
