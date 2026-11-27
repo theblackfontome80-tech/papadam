@@ -1,6 +1,6 @@
 {
-  "version": 1795808995172,
-  "updated": "2026-11-27T19:49:55.172Z",
+  "version": 1795809023590,
+  "updated": "2026-11-27T19:50:23.590Z",
   "categories": [
     {
       "id": "naan",
@@ -10,7 +10,7 @@
         {
           "id": "naan-chawarma",
           "name": "Naan Chawarma",
-          "price": 9.5,
+          "price": 9,
           "desc": "Chawarma de dinde tranché fin, crudités fraîches, roulé dans un naan tiède.",
           "featured": true,
           "img": {
