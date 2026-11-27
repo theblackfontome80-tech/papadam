@@ -103,6 +103,39 @@
       .picks { grid-template-columns: 1fr; }
       .pick__media { aspect-ratio: 16 / 9; }
     }
+    /* --- Version compacte : le choix est visible dès l'arrivée, sans défiler --- */
+    .choose { padding-top: clamp(16px, 3vh, 32px); }
+    .choose__seal { width: 58px; height: 58px; }
+    .choose__head { margin-top: clamp(10px, 2vh, 18px); max-width: 860px; }
+    .choose__title { margin-top: 8px; font-size: clamp(2rem, 4.2vw, 3.4rem); }
+    .choose__lead { margin-top: 8px; font-size: 1rem; }
+    .picks { margin-top: clamp(18px, 3vh, 30px); max-width: 980px; }
+    .pick__media { aspect-ratio: 16 / 7; }
+    .pick__body { gap: 8px; padding: 18px 22px 20px; }
+    .pick__place { display: none; }
+    .pick__title { font-size: clamp(1.8rem, 2.8vw, 2.4rem); }
+    .pick__info { margin-top: 0; gap: 4px; font-size: .92rem; }
+    .pick__cta { margin-top: 6px; padding: 13px 20px; }
+    .pick__extra a { padding: 12px 10px; }
+    .choose__foot { padding-top: 20px; }
+    .choose__lead { max-width: 44em; }
+    @media (min-width: 721px) { .pick__media { aspect-ratio: 16 / 6.2; } }
+    @media (max-width: 720px) {
+      .choose__seal { width: 46px; height: 46px; }
+      .choose__head .kicker { display: none; }
+      .choose__title { font-size: 1.9rem; }
+      .choose__lead { font-size: .9rem; line-height: 1.45; }
+      .picks { gap: 12px; margin-top: 16px; }
+      .pick__main { flex-direction: row; }
+      .pick__media { aspect-ratio: auto; width: 36%; flex: none; }
+      .pick__badge { top: 8px; left: 8px; padding: 5px 8px; font-size: .58rem; }
+      .pick__body { padding: 12px 14px; gap: 5px; align-content: center; }
+      .pick__title { font-size: 1.55rem; }
+      .pick__info { font-size: .8rem; line-height: 1.35; }
+      .pick__info svg { width: 14px; height: 14px; margin-top: 1px; }
+      .pick__cta { padding: 10px 14px; font-size: .85rem; }
+      .pick__extra a { padding: 10px 6px; font-size: .8rem; }
+    }
     @media (prefers-reduced-motion: reduce) {
       .pick, .choose__seal { animation: none; }
       .pick, .pick__media img, .pick__cta svg { transition: none; }
@@ -125,8 +158,8 @@
 
     <header class="choose__head">
       <p class="kicker">Deux adresses à Sousse</p>
-      <h1 class="choose__title">Quel Papadam<br>vous <em>attend&nbsp;?</em></h1>
-      <p class="choose__lead">Le même amour du naan, deux restaurants. Choisissez le vôtre pour voir son menu, ses horaires et commander.</p>
+      <h1 class="choose__title">Quel Papadam vous <em>attend&nbsp;?</em></h1>
+      <p class="choose__lead">Deux restaurants à Sousse. Choisissez le vôtre pour voir le menu et commander.</p>
     </header>
 
     <ul class="picks">
@@ -134,7 +167,7 @@
         <a class="pick__main" href="/sahloul/">
           <div class="pick__media">
             <img src="/assets/img/naans-alignes-640.webp" srcset="/assets/img/naans-alignes-640.webp 640w, /assets/img/naans-alignes-1000.webp 1000w" sizes="(max-width: 720px) 92vw, 500px" width="640" height="288" alt="Naans sandwichs Papadam alignés sur une planche">
-            <span class="pick__badge" data-last hidden>Votre dernier choix</span>
+            <span class="pick__badge" data-last hidden>Dernier choix</span>
           </div>
           <div class="pick__body">
             <span class="pick__place">Papadam Food</span>
@@ -143,7 +176,7 @@
               <li><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-pin"/></svg>Sahloul 1, en face de la Poste de Sahloul</li>
               <li><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-bag"/></svg>Livraison Thunder Express &amp; Yassir</li>
             </ul>
-            <span class="pick__cta">Entrer chez Papadam Sahloul<svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-arrow"/></svg></span>
+            <span class="pick__cta">Choisir Sahloul<svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-arrow"/></svg></span>
           </div>
         </a>
         <div class="pick__extra">
@@ -156,7 +189,7 @@
         <a class="pick__main" href="/khezama/">
           <div class="pick__media">
             <img src="/assets/img/hero-kebab-naan-640.webp" srcset="/assets/img/hero-kebab-naan-640.webp 640w, /assets/img/hero-kebab-naan-1000.webp 1000w" sizes="(max-width: 720px) 92vw, 500px" width="640" height="400" alt="Naan kebab Papadam avec frites">
-            <span class="pick__badge" data-last hidden>Votre dernier choix</span>
+            <span class="pick__badge" data-last hidden>Dernier choix</span>
           </div>
           <div class="pick__body">
             <span class="pick__place">Papadam Food</span>
@@ -165,7 +198,7 @@
               <li><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-pin"/></svg>Khezama Est, 1 Av. 14 Janvier</li>
               <li><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-clock"/></svg>Tous les jours, 11h30 – 3h00</li>
             </ul>
-            <span class="pick__cta">Entrer chez Papadam Khezama<svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-arrow"/></svg></span>
+            <span class="pick__cta">Choisir Khezama<svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-arrow"/></svg></span>
           </div>
         </a>
         <div class="pick__extra">
