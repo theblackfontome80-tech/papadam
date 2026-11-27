@@ -202,9 +202,14 @@
   /* ---------- Onglets du menu ---------- */
   const tabsWrap = $('.menu-tabs-wrap');
   const tablist = $('[data-tabs]');
-  const tabs = $$('[role="tab"]', tablist);
   const ink = $('[data-tabs-ink]');
-  const panels = $$('[data-panel]');
+  // Onglets et panneaux relus à chaque fois : le menu peut être régénéré depuis /data/menu.json (menu.js)
+  let tabs = $$('[role="tab"]', tablist);
+  let panels = $$('[data-panel]');
+  function refreshTabs() {
+    tabs = $$('[role="tab"]', tablist);
+    panels = $$('[data-panel]');
+  }
 
   function moveInk(tab) {
     if (!ink || !tab) return;
@@ -228,7 +233,10 @@
     }
     if (focus) tab.focus();
   }
-  tabs.forEach((tab) => tab.addEventListener('click', () => activateTab(tab.dataset.tab)));
+  tablist?.addEventListener('click', (e) => {
+    const tab = e.target.closest('[role="tab"]');
+    if (tab) activateTab(tab.dataset.tab);
+  });
   tablist?.addEventListener('keydown', (e) => {
     const i = tabs.indexOf(document.activeElement);
     if (i < 0) return;
@@ -246,6 +254,12 @@
   document.fonts?.ready.then(() => moveInk(tabs.find((t) => t.getAttribute('aria-selected') === 'true')));
   addEventListener('resize', () => moveInk(tabs.find((t) => t.getAttribute('aria-selected') === 'true')));
   moveInk(activeTab);
+  // Menu régénéré depuis les données du backstage
+  addEventListener('papadam:menu', () => {
+    refreshTabs();
+    const current = tabs.find((t) => t.getAttribute('aria-selected') === 'true') || tabs[0];
+    if (current) activateTab(current.dataset.tab);
+  });
 
   function updateStickyTabs() {
     if (!tabsWrap) return;

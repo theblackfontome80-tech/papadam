@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Backstage Papadam</title>
+  <meta name="theme-color" content="#17120e">
+  <link rel="icon" href="/assets/favicon.webp" type="image/webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..700&family=Manrope:wght@400;500;600;700&family=Kaushan+Script&display=swap">
+  <style>
+    :root {
+      --cream: #f4ecdd; --paper: #fbf6ec; --sand: #e9dcc4; --ink: #17120e; --ink-2: #2b231c;
+      --text: #2a221b; --muted: #6b5d50; --spice: #b4501c; --mustard: #efbd3c; --on-dark: #f6efe2;
+      --ok: #1f7a46; --danger: #b3261e; --line: rgba(23, 18, 14, .14);
+      --f-display: 'Fraunces', Georgia, serif; --f-body: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --r: 18px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; background: var(--cream); color: var(--text); font: 400 1rem/1.5 var(--f-body); -webkit-font-smoothing: antialiased; }
+    button, input, textarea, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    img { display: block; max-width: 100%; }
+    [hidden] { display: none !important; }
+    .wrap { width: 100%; max-width: 760px; margin: 0 auto; padding: 0 16px; }
+
+    /* Connexion */
+    .login { min-height: 100vh; min-height: 100svh; display: grid; place-items: center; padding: 24px 16px; }
+    .login__card { width: 100%; max-width: 380px; background: var(--paper); border: 1px solid var(--line); border-radius: 26px; padding: 30px 24px; text-align: center; box-shadow: 0 20px 50px -24px rgba(23,18,14,.35); }
+    .login__seal { width: 64px; height: 64px; margin: 0 auto 12px; }
+    .login h1 { margin: 0; font: 650 1.9rem/1.1 var(--f-display); color: var(--ink); }
+    .login p { margin: 8px 0 22px; color: var(--muted); font-size: .95rem; }
+    .field-label { display: block; text-align: left; font-weight: 700; font-size: .85rem; margin-bottom: 6px; }
+    .input { width: 100%; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 14px; background: #fffdf8; font-size: 1.05rem; }
+    .input:focus { outline: none; border-color: var(--spice); box-shadow: 0 0 0 3px rgba(180,80,28,.18); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 22px; border-radius: 999px; border: 0; font-weight: 700; font-size: 1rem; text-decoration: none; }
+    .btn--ink { background: var(--ink); color: var(--on-dark); }
+    .btn--ink:hover { background: var(--spice); }
+    .btn--save { background: var(--ok); color: #fff; min-width: 170px; }
+    .btn--save:disabled { background: #b9ad9b; cursor: default; }
+    .btn--line { background: transparent; border: 1.5px solid var(--ink); color: var(--ink); }
+    .btn--block { width: 100%; margin-top: 14px; }
+    .error { margin: 12px 0 0; color: var(--danger); font-weight: 600; font-size: .92rem; }
+
+    /* Barre du haut */
+    .top { position: sticky; top: 0; z-index: 20; background: rgba(244,236,221,.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+    .top__row { display: flex; align-items: center; gap: 12px; padding: 12px 0 10px; }
+    .top__title { margin: 0 auto 0 0; font: 650 1.35rem/1 var(--f-display); color: var(--ink); }
+    .top__title small { display: block; margin-top: 4px; font: 600 .75rem/1 var(--f-body); color: var(--muted); }
+    .link { white-space: nowrap; color: var(--ink); font-weight: 700; font-size: .88rem; text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; padding: 6px 2px; }
+    .chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 12px; scrollbar-width: none; }
+    .chips::-webkit-scrollbar { display: none; }
+    .chip { flex: none; padding: 10px 16px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--paper); font-weight: 700; font-size: .92rem; white-space: nowrap; }
+    .chip[aria-pressed="true"] { background: var(--ink); color: var(--on-dark); border-color: var(--ink); }
+    .chip--add { border-style: dashed; color: var(--spice); }
+
+    /* Catégorie */
+    main.editor { padding: 18px 0 130px; }
+    .cat-head { display: grid; gap: 10px; margin-bottom: 16px; padding: 16px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); }
+    .cat-head__row { display: flex; gap: 10px; align-items: center; }
+    .cat-head__name { flex: 1; font: 650 1.3rem/1.2 var(--f-display); padding: 10px 12px; }
+    .cat-head details summary { cursor: pointer; font-weight: 700; font-size: .88rem; color: var(--muted); }
+    .cat-head textarea { margin-top: 8px; }
+    .cat-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .hint { margin: 0 0 14px; color: var(--muted); font-size: .9rem; }
+
+    /* Article */
+    .items { display: grid; gap: 12px; list-style: none; margin: 0; padding: 0; }
+    .item { background: #fffdf8; border: 1.5px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 12px; }
+    .item.is-changed { border-color: var(--mustard); box-shadow: 0 0 0 3px rgba(239,189,60,.25); }
+    .item__main { display: grid; grid-template-columns: 84px 1fr; gap: 12px; align-items: start; }
+    .photo { position: relative; width: 84px; height: 84px; border-radius: 14px; overflow: hidden; background: var(--sand); border: 0; padding: 0; }
+    .photo img { width: 100%; height: 100%; object-fit: cover; }
+    .photo span { position: absolute; inset: auto 0 0; padding: 4px 0; background: rgba(23,18,14,.72); color: #fff; font-size: .68rem; font-weight: 700; text-align: center; }
+    .photo__empty { display: grid; place-items: center; width: 100%; height: 100%; color: var(--muted); font-size: 1.8rem; }
+    .item__fields { display: grid; gap: 8px; min-width: 0; }
+    .item__name { font-weight: 700; padding: 10px 12px; font-size: 1rem; }
+    .price { display: flex; align-items: center; gap: 8px; }
+    .price .input { width: 120px; padding: 10px 12px; font-weight: 700; font-size: 1.1rem; }
+    .price b { color: var(--muted); }
+    textarea.input { resize: vertical; min-height: 64px; font-size: .95rem; padding: 10px 12px; }
+    .item__opts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .toggle { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--paper); font-weight: 700; font-size: .85rem; }
+    .toggle[aria-pressed="true"] { background: var(--mustard); border-color: var(--mustard); color: var(--ink); }
+    .badge-input { width: 150px; padding: 8px 12px; font-size: .88rem; border-radius: 999px; }
+    .item__actions { display: flex; flex-wrap: wrap; gap: 6px; border-top: 1px dashed var(--line); padding-top: 10px; }
+    .mini { padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--paper); font-weight: 700; font-size: .82rem; }
+    .mini--danger { color: var(--danger); border-color: rgba(179,38,30,.35); margin-left: auto; }
+    .mini:disabled { opacity: .35; cursor: default; }
+    .add { width: 100%; margin-top: 12px; padding: 18px; border-radius: var(--r); border: 2px dashed var(--spice); background: transparent; color: var(--spice); font-weight: 700; font-size: 1rem; }
+
+    /* Barre d'enregistrement */
+    .savebar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--ink); color: var(--on-dark); padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 30px -12px rgba(0,0,0,.4); }
+    .savebar__row { display: flex; align-items: center; gap: 12px; }
+    .savebar__status { flex: 1; font-weight: 600; font-size: .92rem; line-height: 1.3; }
+    .savebar__status small { display: block; opacity: .7; font-weight: 500; }
+
+    .toast { position: fixed; left: 50%; top: 16px; z-index: 50; transform: translate(-50%, calc(-100% - 40px)); visibility: hidden; max-width: calc(100% - 32px); padding: 14px 18px; border-radius: 14px; background: var(--ok); color: #fff; font-weight: 700; box-shadow: 0 16px 40px -16px rgba(0,0,0,.45); transition: transform .4s cubic-bezier(.2,.7,.2,1), visibility 0s .4s; }
+    .toast.is-error { background: var(--danger); }
+    .toast.is-on { transform: translate(-50%, 0); visibility: visible; transition: transform .4s cubic-bezier(.2,.7,.2,1); }
+    .loading { padding: 60px 0; text-align: center; color: var(--muted); }
+    @media (max-width: 420px) {
+      .item__main { grid-template-columns: 72px 1fr; }
+      .photo { width: 72px; height: 72px; }
+      .btn--save { min-width: 0; padding: 0 18px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ============ CONNEXION ============ -->
+  <section class="login" data-login hidden>
+    <form class="login__card" data-login-form>
+      <svg class="login__seal" viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="58" fill="#17120e"/>
+        <circle cx="60" cy="60" r="31" fill="#f4ecdd"/>
+        <text x="60" y="64" text-anchor="middle" font-family="'Kaushan Script', cursive" font-size="17" fill="#17120e">Papadam</text>
+        <text x="60" y="76" text-anchor="middle" font-family="Manrope, sans-serif" font-weight="700" font-size="6.4" letter-spacing="2.4" fill="#b8541f">FOOD</text>
+      </svg>
+      <h1>Backstage</h1>
+      <p>Modifier le menu du site Papadam</p>
+      <label class="field-label" for="pw">Mot de passe</label>
+      <input class="input" id="pw" type="password" autocomplete="current-password" required data-pw>
+      <button class="btn btn--ink btn--block" type="submit" data-login-btn>Entrer</button>
+      <p class="error" data-login-error hidden></p>
+    </form>
+  </section>
+
+  <!-- ============ ÉDITEUR ============ -->
+  <div data-app hidden>
+    <header class="top">
+      <div class="wrap">
+        <div class="top__row">
+          <h1 class="top__title">Menu Papadam<small>Même menu pour Sahloul et Khezama</small></h1>
+          <a class="link" href="/" target="_blank" rel="noopener">Voir le site</a>
+          <button class="link" type="button" data-logout>Quitter</button>
+        </div>
+        <nav class="chips" aria-label="Catégories" data-chips></nav>
+      </div>
+    </header>
+
+    <main class="editor wrap" data-editor>
+      <p class="loading">Chargement du menu…</p>
+    </main>
+
+    <div class="savebar">
+      <div class="wrap savebar__row">
+        <p class="savebar__status" data-status>Aucune modification</p>
+        <button class="btn btn--save" type="button" data-save disabled>Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" accept="image/*" hidden data-file>
+  <div class="toast" role="status" aria-live="polite" data-toast></div>
+
+  <script>
+  (() => {
+    'use strict';
+    const $ = (s, c = document) => c.querySelector(s);
+    const API = ['papadam.vercel.app', 'localhost', '127.0.0.1'].includes(location.hostname) ? '/api/save' : 'https://papadam.vercel.app/api/save';
+    const PW_KEY = 'papadam-admin-pw';
+    const BADGES = ['Populaire', 'Signature', 'Nouveau', 'Épicé', 'Promo'];
+
+    const store = {
+      get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+      set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+      del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+    };
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const slug = (s) => String(s || '').normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+    const fmtPrice = (n) => (Number.isFinite(n) ? n.toFixed(3).replace('.', ',') : '');
+    const parsePrice = (s) => {
+      const v = parseFloat(String(s).replace(/\s|dt/gi, '').replace(',', '.'));
+      return Number.isFinite(v) ? Math.round(v * 1000) / 1000 : NaN;
+    };
+    const uid = () => Math.random().toString(36).slice(2, 7);
+
+    let password = store.get(PW_KEY) || '';
+    let menu = null;          // menu en cours d'édition
+    let saved = '';           // dernière version enregistrée (texte), pour détecter les changements
+    let savedItems = new Map(); // id -> texte de l'article enregistré, pour surligner ce qui a changé
+    let current = null;       // id de la catégorie affichée
+    let photos = new Map();   // chemin -> { data (base64), url (aperçu) } en attente d'envoi
+    let photoTarget = null;   // article qui reçoit la photo choisie
+
+    /* ---------- Messages ---------- */
+    let toastTimer;
+    function toast(msg, error = false) {
+      const t = $('[data-toast]');
+      t.textContent = msg;
+      t.classList.toggle('is-error', error);
+      t.classList.add('is-on');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('is-on'), error ? 6000 : 4000);
+    }
+
+    async function api(body) {
+      const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password, ...body }) });
+      let data = {};
+      try { data = await res.json(); } catch (e) {}
+      if (!res.ok) { const err = new Error(data.error || `Erreur ${res.status}`); err.status = res.status; throw err; }
+      return data;
+    }
+
+    /* ---------- Connexion ---------- */
+    function showLogin(message) {
+      $('[data-app]').hidden = true;
+      $('[data-login]').hidden = false;
+      const err = $('[data-login-error]');
+      err.hidden = !message;
+      err.textContent = message || '';
+      setTimeout(() => $('[data-pw]').focus(), 50);
+    }
+    $('[data-login-form]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = $('[data-login-btn]');
+      password = $('[data-pw]').value;
+      btn.disabled = true; btn.textContent = 'Vérification…';
+      try {
+        await api({ action: 'check' });
+        store.set(PW_KEY, password);
+        if (menu) {
+          // Reconnexion en cours d'édition : on garde les modifications
+          $('[data-login]').hidden = true;
+          $('[data-app]').hidden = false;
+        } else {
+          start();
+        }
+      } catch (err) {
+        showLogin(err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Entrer';
+      }
+    });
+    $('[data-logout]').addEventListener('click', () => {
+      if (isDirty() && !confirm('Des modifications ne sont pas enregistrées. Quitter quand même ?')) return;
+      store.del(PW_KEY); password = ''; saved = JSON.stringify(menu); location.reload();
+    });
+
+    /* ---------- Données ---------- */
+    async function loadMenu() {
+      const res = await fetch(`/data/menu.json?t=${Date.now()}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('Impossible de charger le menu.');
+      return res.json();
+    }
+    function remember() {
+      saved = JSON.stringify(menu);
+      savedItems = new Map(menu.categories.flatMap((c) => c.items.map((i) => [i.id, JSON.stringify(i)])));
+    }
+    const isDirty = () => menu && JSON.stringify(menu) !== saved;
+    const cat = () => menu.categories.find((c) => c.id === current);
+
+    async function start() {
+      $('[data-login]').hidden = true;
+      $('[data-app]').hidden = false;
+      try {
+        menu = await loadMenu();
+        remember();
+        current = menu.categories[0]?.id || null;
+        render();
+      } catch (e) {
+        $('[data-editor]').innerHTML = `<p class="loading">${esc(e.message)} Rechargez la page.</p>`;
+      }
+    }
+
+    /* ---------- Affichage ---------- */
+    function render() {
+      renderChips();
+      renderCategory();
+      updateStatus();
+    }
+
+    function renderChips() {
+      $('[data-chips]').innerHTML = menu.categories.map((c) =>
+        `<button class="chip" type="button" aria-pressed="${c.id === current}" data-cat="${esc(c.id)}">${esc(c.name || 'Sans nom')} (${c.items.length})</button>`
+      ).join('') + '<button class="chip chip--add" type="button" data-add-cat>+ Catégorie</button>';
+    }
+
+    function photoHtml(item) {
+      const src = item.img && (photos.get(item.img.src.slice(1))?.url || item.img.src);
+      return `<button class="photo" type="button" data-act="photo" aria-label="Changer la photo de ${esc(item.name)}">
+        ${src ? `<img src="${esc(src)}" alt="">` : '<span class="photo__empty">📷</span>'}<span>${src ? 'Changer' : 'Ajouter'}</span></button>`;
+    }
+
+    function itemHtml(item, i, n, drinks) {
+      const changed = savedItems.get(item.id) !== JSON.stringify(item);
+      return `<li class="item${changed ? ' is-changed' : ''}" data-id="${esc(item.id)}">
+        <div class="item__main">
+          ${photoHtml(item)}
+          <div class="item__fields">
+            <input class="input item__name" value="${esc(item.name)}" placeholder="Nom de l'article" aria-label="Nom" data-f="name">
+            <label class="price"><input class="input" inputmode="decimal" value="${esc(fmtPrice(item.price))}" placeholder="0,000" aria-label="Prix en dinars" data-f="price"><b>DT</b></label>
+          </div>
+        </div>
+        <textarea class="input" rows="2" placeholder="Description (facultatif)" aria-label="Description" data-f="desc">${esc(item.desc)}</textarea>
+        <div class="item__opts">
+          ${drinks ? '' : `<button class="toggle" type="button" aria-pressed="${!!item.featured}" data-act="featured">★ Spécialité</button>`}
+          <input class="input badge-input" list="badges" value="${esc(item.badge || '')}" placeholder="Étiquette (ex. Nouveau)" aria-label="Étiquette" data-f="badge">
+        </div>
+        <div class="item__actions">
+          <button class="mini" type="button" data-act="up" ${i === 0 ? 'disabled' : ''} aria-label="Monter">↑ Monter</button>
+          <button class="mini" type="button" data-act="down" ${i === n - 1 ? 'disabled' : ''} aria-label="Descendre">↓ Descendre</button>
+          ${item.img ? '<button class="mini" type="button" data-act="nophoto">Retirer la photo</button>' : ''}
+          <button class="mini mini--danger" type="button" data-act="delete">Supprimer</button>
+        </div>
+      </li>`;
+    }
+
+    function renderCategory() {
+      const c = cat();
+      const ed = $('[data-editor]');
+      if (!c) { ed.innerHTML = '<p class="loading">Aucune catégorie. Ajoutez-en une avec « + Catégorie ».</p>'; return; }
+      const idx = menu.categories.indexOf(c);
+      ed.innerHTML = `
+        <section class="cat-head">
+          <div class="cat-head__row">
+            <input class="input cat-head__name" value="${esc(c.name)}" aria-label="Nom de la catégorie" data-cf="name">
+          </div>
+          <details>
+            <summary>Texte d'introduction et options de la catégorie</summary>
+            <textarea class="input" rows="2" aria-label="Introduction" data-cf="intro">${esc(c.intro)}</textarea>
+            <div class="cat-tools">
+              <button class="mini" type="button" data-cact="left" ${idx === 0 ? 'disabled' : ''}>← Avant</button>
+              <button class="mini" type="button" data-cact="right" ${idx === menu.categories.length - 1 ? 'disabled' : ''}>Après →</button>
+              <button class="mini" type="button" data-cact="drinks">${c.drinks ? 'Catégorie boissons ✓' : 'Catégorie normale'}</button>
+              <button class="mini mini--danger" type="button" data-cact="delete">Supprimer la catégorie</button>
+            </div>
+          </details>
+        </section>
+        <p class="hint">Touchez un champ pour le modifier, puis appuyez sur <strong>Enregistrer</strong> en bas.</p>
+        <ul class="items">${c.items.map((it, i) => itemHtml(it, i, c.items.length, c.drinks)).join('')}</ul>
+        <button class="add" type="button" data-add-item>+ Ajouter un article dans « ${esc(c.name)} »</button>
+        <datalist id="badges">${BADGES.map((b) => `<option value="${b}">`).join('')}</datalist>`;
+    }
+
+    function markItem(li) {
+      const item = cat().items.find((i) => i.id === li.dataset.id);
+      li.classList.toggle('is-changed', savedItems.get(item.id) !== JSON.stringify(item));
+    }
+
+    function updateStatus() {
+      const dirty = isDirty();
+      let n = 0;
+      if (dirty) {
+        const now = new Map(menu.categories.flatMap((c) => c.items.map((i) => [i.id, JSON.stringify(i)])));
+        now.forEach((v, k) => { if (savedItems.get(k) !== v) n++; });
+        savedItems.forEach((v, k) => { if (!now.has(k)) n++; });
+      }
+      $('[data-status]').innerHTML = dirty
+        ? `${n ? `${n} article${n > 1 ? 's' : ''} modifié${n > 1 ? 's' : ''}` : 'Modifications'} à enregistrer<small>Rien n'est en ligne tant que vous n'enregistrez pas</small>`
+        : 'Aucune modification<small>Le site affiche ce menu</small>';
+      $('[data-save]').disabled = !dirty;
+    }
+
+    /* ---------- Saisie ---------- */
+    $('[data-chips]').addEventListener('click', (e) => {
+      const chip = e.target.closest('[data-cat]');
+      if (chip) { current = chip.dataset.cat; render(); scrollTo({ top: 0, behavior: 'smooth' }); return; }
+      if (e.target.closest('[data-add-cat]')) {
+        const name = prompt('Nom de la nouvelle catégorie ?');
+        if (!name || !name.trim()) return;
+        let id = slug(name) || `categorie-${uid()}`;
+        while (menu.categories.some((c) => c.id === id)) id = `${slug(name)}-${uid()}`;
+        menu.categories.push({ id, name: name.trim(), intro: '', items: [] });
+        current = id;
+        render();
+      }
+    });
+
+    $('[data-editor]').addEventListener('input', (e) => {
+      const c = cat();
+      const cf = e.target.dataset.cf;
+      if (cf) { c[cf] = e.target.value; if (cf === 'name') renderChips(); updateStatus(); return; }
+      const f = e.target.dataset.f;
+      const li = e.target.closest('[data-id]');
+      if (!f || !li) return;
+      const item = c.items.find((i) => i.id === li.dataset.id);
+      if (f === 'price') {
+        const v = parsePrice(e.target.value);
+        e.target.setCustomValidity(Number.isFinite(v) ? '' : 'Prix invalide');
+        if (Number.isFinite(v)) item.price = v;
+      } else if (f === 'badge') {
+        if (e.target.value.trim()) item.badge = e.target.value; else delete item.badge;
+      } else {
+        item[f] = e.target.value;
+      }
+      markItem(li);
+      updateStatus();
+    });
+    // Remet le prix au bon format en sortant du champ
+    $('[data-editor]').addEventListener('focusout', (e) => {
+      if (e.target.dataset.f !== 'price') return;
+      const li = e.target.closest('[data-id]');
+      const item = cat().items.find((i) => i.id === li.dataset.id);
+      e.target.value = fmtPrice(item.price);
+      e.target.setCustomValidity('');
+    });
+
+    $('[data-editor]').addEventListener('click', (e) => {
+      const c = cat();
+      const cbtn = e.target.closest('[data-cact]');
+      if (cbtn) {
+        const i = menu.categories.indexOf(c);
+        const a = cbtn.dataset.cact;
+        if (a === 'left' && i > 0) [menu.categories[i - 1], menu.categories[i]] = [menu.categories[i], menu.categories[i - 1]];
+        if (a === 'right' && i < menu.categories.length - 1) [menu.categories[i + 1], menu.categories[i]] = [menu.categories[i], menu.categories[i + 1]];
+        if (a === 'drinks') { if (c.drinks) delete c.drinks; else c.drinks = true; }
+        if (a === 'delete') {
+          if (!confirm(`Supprimer la catégorie « ${c.name} » et ses ${c.items.length} article(s) ?`)) return;
+          menu.categories.splice(i, 1);
+          current = menu.categories[Math.max(0, i - 1)]?.id || null;
+        }
+        render();
+        if (a !== 'delete') $('.cat-head details').open = true;
+        return;
+      }
+      if (e.target.closest('[data-add-item]')) {
+        const item = { id: `article-${uid()}`, name: '', price: 0, desc: '' };
+        c.items.push(item);
+        renderCategory(); updateStatus();
+        const li = $(`[data-id="${item.id}"]`);
+        li.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        $('[data-f="name"]', li).focus({ preventScroll: true });
+        return;
+      }
+      const btn = e.target.closest('[data-act]');
+      const li = e.target.closest('[data-id]');
+      if (!btn || !li) return;
+      const i = c.items.findIndex((x) => x.id === li.dataset.id);
+      const item = c.items[i];
+      const act = btn.dataset.act;
+      if (act === 'up' && i > 0) [c.items[i - 1], c.items[i]] = [c.items[i], c.items[i - 1]];
+      else if (act === 'down' && i < c.items.length - 1) [c.items[i + 1], c.items[i]] = [c.items[i], c.items[i + 1]];
+      else if (act === 'featured') { if (item.featured) delete item.featured; else item.featured = true; }
+      else if (act === 'nophoto') { if (!confirm('Retirer la photo de cet article ?')) return; delete item.img; }
+      else if (act === 'delete') {
+        if (!confirm(`Supprimer « ${item.name || 'cet article'} » du menu ?`)) return;
+        c.items.splice(i, 1);
+      } else if (act === 'photo') {
+        photoTarget = item.id;
+        $('[data-file]').value = '';
+        $('[data-file]').click();
+        return;
+      }
+      renderCategory(); renderChips(); updateStatus();
+      const again = $(`[data-id="${item.id}"]`);
+      if (again && (act === 'up' || act === 'down')) again.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    /* ---------- Photos : redimensionnées sur l'appareil avant l'envoi ---------- */
+    async function compress(file) {
+      const bitmap = await createImageBitmap(file).catch(() => null);
+      let source = bitmap, w, h;
+      if (bitmap) { w = bitmap.width; h = bitmap.height; }
+      else {
+        source = await new Promise((ok, ko) => { const im = new Image(); im.onload = () => ok(im); im.onerror = ko; im.src = URL.createObjectURL(file); });
+        w = source.naturalWidth; h = source.naturalHeight;
+      }
+      const scale = Math.min(1, 1200 / Math.max(w, h));
+      const cw = Math.round(w * scale), ch = Math.round(h * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = cw; canvas.height = ch;
+      canvas.getContext('2d').drawImage(source, 0, 0, cw, ch);
+      const toBlob = (type, q) => new Promise((ok) => canvas.toBlob(ok, type, q));
+      let blob = await toBlob('image/webp', 0.82);
+      let ext = 'webp';
+      if (!blob || blob.type !== 'image/webp') { blob = await toBlob('image/jpeg', 0.82); ext = 'jpg'; }
+      for (let q = 0.7; blob.size > 1_000_000 && q > 0.3; q -= 0.15) blob = await toBlob(ext === 'webp' ? 'image/webp' : 'image/jpeg', q);
+      const data = await new Promise((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.readAsDataURL(blob); });
+      return { data, ext, w: cw, h: ch, url: URL.createObjectURL(blob) };
+    }
+
+    $('[data-file]').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      const c = cat();
+      const item = c && c.items.find((i) => i.id === photoTarget);
+      if (!file || !item) return;
+      toast('Préparation de la photo…');
+      try {
+        const img = await compress(file);
+        const path = `media/${slug(item.name) || 'article'}-${Date.now().toString(36)}.${img.ext}`;
+        photos.set(path, { data: img.data, url: img.url });
+        item.img = { src: `/${path}`, w: img.w, h: img.h };
+        renderCategory(); updateStatus();
+        toast('Photo ajoutée. Pensez à enregistrer.');
+      } catch (err) {
+        toast('Impossible de lire cette photo. Essayez une autre image.', true);
+      }
+    });
+
+    /* ---------- Enregistrement ---------- */
+    function validate() {
+      for (const c of menu.categories) {
+        if (!c.name.trim()) return { cat: c.id, msg: 'Une catégorie n’a pas de nom.' };
+        for (const i of c.items) {
+          if (!i.name.trim()) return { cat: c.id, item: i.id, msg: `Un article de « ${c.name} » n’a pas de nom.` };
+          if (!Number.isFinite(i.price) || i.price <= 0) return { cat: c.id, item: i.id, msg: `Le prix de « ${i.name} » est manquant.` };
+        }
+      }
+      return null;
+    }
+
+    $('[data-save]').addEventListener('click', async () => {
+      const problem = validate();
+      if (problem) {
+        current = problem.cat; render();
+        const li = problem.item && $(`[data-id="${problem.item}"]`);
+        if (li) { li.scrollIntoView({ behavior: 'smooth', block: 'center' }); li.classList.add('is-changed'); }
+        toast(problem.msg, true);
+        return;
+      }
+      const btn = $('[data-save]');
+      btn.disabled = true; btn.textContent = 'Enregistrement…';
+      const used = new Set(menu.categories.flatMap((c) => c.items.map((i) => i.img && i.img.src.slice(1))));
+      const images = [...photos].filter(([p]) => used.has(p)).map(([path, p]) => ({ path, data: p.data }));
+      try {
+        const res = await api({ baseVersion: menu.version, menu: { categories: menu.categories }, images });
+        menu = res.menu;
+        photos.forEach((p, path) => { if (!used.has(path)) URL.revokeObjectURL(p.url); });
+        // On garde les aperçus locaux des nouvelles photos le temps que le site se mette à jour
+        photos = new Map([...photos].filter(([p]) => used.has(p)));
+        remember(); render();
+        const partial = (res.results || []).filter((r) => !r.ok);
+        toast(partial.length
+          ? 'Enregistré, mais un des deux sites n’a pas pu être mis à jour. Prévenez le responsable.'
+          : 'Enregistré ✓ Le site sera à jour dans environ 1 minute.', partial.length > 0);
+      } catch (err) {
+        if (err.status === 401) { store.del(PW_KEY); showLogin('Mot de passe incorrect. Reconnectez-vous (vos modifications sont gardées).'); }
+        else toast(err.message || 'Enregistrement impossible. Vérifiez la connexion internet.', true);
+      } finally {
+        btn.textContent = 'Enregistrer';
+        updateStatus();
+      }
+    });
+
+    addEventListener('beforeunload', (e) => { if (isDirty()) { e.preventDefault(); e.returnValue = ''; } });
+
+    /* ---------- Démarrage ---------- */
+    if (password) {
+      api({ action: 'check' }).then(start).catch((err) => { if (err.status === 401) store.del(PW_KEY); showLogin(err.status === 401 ? '' : err.message); });
+    } else {
+      showLogin();
+    }
+  })();
+  </script>
+</body>
+</html>
