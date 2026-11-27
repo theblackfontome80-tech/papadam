@@ -158,7 +158,7 @@ module.exports = async (req, res) => {
     if (fails.until > Date.now()) throw new HttpError(429, 'Trop d’essais. Réessayez dans quelques minutes.');
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-    if (!samePassword(body.password || '', process.env.ADMIN_PASSWORD)) {
+    if (!samePassword(String(body.password || '').trim(), String(process.env.ADMIN_PASSWORD).trim())) {
       fails.n += 1;
       if (fails.n >= 8) { fails.until = Date.now() + 10 * 60 * 1000; fails.n = 0; }
       failures.set(ip, fails);
