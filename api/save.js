@@ -1,8 +1,10 @@
 /* =========================================================
    PAPADAM — Enregistrement du menu (fonction Vercel)
    POST /api/save
-     { password, action: "check" }                       -> vérifie le mot de passe
-     { password, site, baseVersion, menu, images: [{path,data}] } -> enregistre le menu d'un resto
+     { password, name, action: "login" }   -> vérifie le mot de passe, renvoie une connexion
+                                              temporaire (token, 12 h). Le mot de passe
+                                              n'est jamais gardé sur le téléphone.
+     { token, site, baseVersion, menu, images: [{path,data}] } -> enregistre le menu d'un resto
        site : "sahloul" ou "khezama" (chaque resto a son propre menu et ses prix)
 
    Variables d'environnement (Vercel > Settings > Environment Variables) :
@@ -27,7 +29,8 @@ const IMG_SRC = /^\/(assets\/img|media)\/[a-z0-9][a-z0-9-]*\.(webp|jpg|jpeg|png)
 const SRCSET = /^(\/(assets\/img|media)\/[a-z0-9][a-z0-9-]*\.(webp|jpg|jpeg|png) \d{2,4}w)(, \/(assets\/img|media)\/[a-z0-9][a-z0-9-]*\.(webp|jpg|jpeg|png) \d{2,4}w)*$/;
 const MEDIA_PATH = /^media\/[a-z0-9][a-z0-9-]{0,80}\.(webp|jpg)$/;
 
-const failures = new Map(); // essais ratés par adresse (limite simple, par instance)
+const SESSION_HOURS = 12;
+const failures = new Map(); // essais ratés par adresse (en plus de la règle du pare-feu Vercel)
 
 class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -39,11 +42,38 @@ function samePassword(given, expected) {
   return crypto.timingSafeEqual(a, b);
 }
 
+// Clé de signature des connexions : changer le mot de passe (ou la clé GitHub) déconnecte tout le monde.
+const sessionKey = () => crypto.createHash('sha256')
+  .update(`papadam-session|${String(process.env.ADMIN_PASSWORD).trim()}|${process.env.GITHUB_TOKEN}`).digest();
+const b64url = (buf) => Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const sign = (payload) => b64url(crypto.createHmac('sha256', sessionKey()).update(payload).digest());
+
+function makeToken(name) {
+  const exp = Date.now() + SESSION_HOURS * 3600 * 1000;
+  const payload = b64url(JSON.stringify({ n: name, e: exp }));
+  return { token: `${payload}.${sign(payload)}`, exp };
+}
+
+function readToken(token) {
+  const [payload, sig] = String(token || '').split('.');
+  if (!payload || !sig) return null;
+  const a = Buffer.from(sig), b = Buffer.from(sign(payload));
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  try {
+    const data = JSON.parse(Buffer.from(payload.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'));
+    return data.e > Date.now() ? cleanName(data.n) : null;
+  } catch (e) { return null; }
+}
+
+// Prénom de l'employé : lettres, espaces, tirets (il apparaît dans l'historique des modifications)
+const cleanName = (v) => String(v || '').normalize('NFC').replace(/[^\p{L}\p{M} '-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 30);
+
 const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 
 function cleanMenu(menu) {
   if (!menu || !Array.isArray(menu.categories)) throw new HttpError(400, 'Menu invalide.');
   if (menu.categories.length > 20) throw new HttpError(400, 'Trop de catégories (20 maximum).');
+  if (!menu.categories.length) throw new HttpError(400, 'Le menu ne peut pas être vide.');
   const ids = new Set();
   const categories = menu.categories.map((c) => {
     const id = str(c.id, 60);
@@ -59,7 +89,7 @@ function cleanMenu(menu) {
       const iname = str(i.name, 80);
       if (!iname) throw new HttpError(400, `Catégorie « ${name} » : un article n’a pas de nom.`);
       const price = Number(i.price);
-      if (!Number.isFinite(price) || price < 0 || price > 1000) throw new HttpError(400, `Prix invalide pour « ${iname} ».`);
+      if (!Number.isFinite(price) || price < 0.1 || price > 1000) throw new HttpError(400, `Prix invalide pour « ${iname} ».`);
       let iid = str(i.id, 60);
       if (!SLUG.test(iid) || itemIds.has(iid)) iid = `article-${crypto.randomBytes(3).toString('hex')}`;
       itemIds.add(iid);
@@ -78,6 +108,7 @@ function cleanMenu(menu) {
     });
     return cat;
   });
+  if (!categories.some((c) => c.items.length)) throw new HttpError(400, 'Le menu ne peut pas être vide.');
   return { categories };
 }
 
@@ -160,16 +191,25 @@ module.exports = async (req, res) => {
     if (fails.until > Date.now()) throw new HttpError(429, 'Trop d’essais. Réessayez dans quelques minutes.');
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-    if (!samePassword(String(body.password || '').trim(), String(process.env.ADMIN_PASSWORD).trim())) {
-      fails.n += 1;
-      if (fails.n >= 8) { fails.until = Date.now() + 10 * 60 * 1000; fails.n = 0; }
-      failures.set(ip, fails);
-      await new Promise((r) => setTimeout(r, 700));
-      throw new HttpError(401, 'Mot de passe incorrect.');
-    }
-    failures.delete(ip);
 
-    if (body.action === 'check') return res.status(200).json({ ok: true });
+    // 1) Connexion : mot de passe + prénom -> connexion temporaire
+    if (body.action === 'login' || body.action === 'check') {
+      if (!samePassword(String(body.password || '').trim(), String(process.env.ADMIN_PASSWORD).trim())) {
+        fails.n += 1;
+        if (fails.n >= 5) { fails.until = Date.now() + 15 * 60 * 1000; fails.n = 0; }
+        failures.set(ip, fails);
+        await new Promise((r) => setTimeout(r, 1500));
+        throw new HttpError(401, 'Mot de passe incorrect.');
+      }
+      failures.delete(ip);
+      const name = cleanName(body.name);
+      if (!name) throw new HttpError(400, 'Indiquez votre prénom.');
+      return res.status(200).json({ ok: true, name, ...makeToken(name) });
+    }
+
+    // 2) Enregistrement : connexion temporaire obligatoire
+    const who = readToken(body.token);
+    if (!who) throw new HttpError(401, 'Connexion expirée. Reconnectez-vous.');
 
     const site = String(body.site || '');
     if (!Object.prototype.hasOwnProperty.call(SITES, site)) throw new HttpError(400, 'Choisissez le restaurant (Sahloul ou Khezama).');
@@ -185,7 +225,7 @@ module.exports = async (req, res) => {
     const version = Date.now();
     const out = { version, updated: new Date(version).toISOString(), categories: menu.categories };
     const files = [{ path, content: JSON.stringify(out, null, 2) + '\n', encoding: 'utf-8' }, ...images];
-    const message = `Menu ${SITES[site]} modifié depuis le backstage${images.length ? ` (+${images.length} photo${images.length > 1 ? 's' : ''})` : ''}`;
+    const message = `Menu ${SITES[site]} modifié par ${who} (backstage)${images.length ? ` (+${images.length} photo${images.length > 1 ? 's' : ''})` : ''}`;
 
     const results = [];
     for (const repo of REPOS) {

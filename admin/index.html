@@ -132,6 +132,8 @@
       </svg>
       <h1>Backstage</h1>
       <p>Modifier le menu du site Papadam</p>
+      <label class="field-label" for="who">Ton prénom</label>
+      <input class="input" id="who" type="text" autocomplete="given-name" maxlength="30" required data-who style="margin-bottom:14px">
       <label class="field-label" for="pw">Mot de passe</label>
       <input class="input" id="pw" type="password" autocomplete="current-password" required data-pw>
       <button class="btn btn--ink btn--block" type="submit" data-login-btn>Entrer</button>
@@ -143,7 +145,7 @@
   <section class="login" data-pick hidden>
     <div class="login__card">
       <h1>Quel restaurant ?</h1>
-      <p>Chaque restaurant a son propre menu et ses propres prix.</p>
+      <p>Chaque restaurant a son propre menu et ses propres prix.<br><small data-who-line></small></p>
       <div class="sites">
         <button class="site-btn" type="button" data-site="sahloul"><span class="site-btn__pin">📍</span><span><b>Sahloul</b><small>Modifier le menu de Sahloul</small></span><i>→</i></button>
         <button class="site-btn" type="button" data-site="khezama"><span class="site-btn__pin">📍</span><span><b>Khezama</b><small>Modifier le menu de Khezama</small></span><i>→</i></button>
@@ -183,9 +185,11 @@
   <script>
   (() => {
     'use strict';
+    if (window.top !== window.self) { document.body.innerHTML = ''; window.top.location = window.self.location.href; return; }
     const $ = (s, c = document) => c.querySelector(s);
     const API = ['papadam.vercel.app', 'localhost', '127.0.0.1'].includes(location.hostname) ? '/api/save' : 'https://papadam.vercel.app/api/save';
-    const PW_KEY = 'papadam-admin-pw';
+    const SESSION_KEY = 'papadam-admin-session'; // connexion temporaire (12 h), jamais le mot de passe
+    const NAME_KEY = 'papadam-admin-name';
     const SITE_KEY = 'papadam-admin-site';
     const SITES = { sahloul: 'Sahloul', khezama: 'Khezama' };
     const BADGES = ['Populaire', 'Signature', 'Nouveau', 'Épicé', 'Promo'];
@@ -204,7 +208,10 @@
     };
     const uid = () => Math.random().toString(36).slice(2, 7);
 
-    let password = store.get(PW_KEY) || '';
+    store.del('papadam-admin-pw'); // ancienne version : le mot de passe était gardé en clair, on l'efface
+    let session = null;
+    try { session = JSON.parse(store.get(SESSION_KEY) || 'null'); } catch (e) {}
+    if (!session || !session.token || !(session.exp > Date.now())) { session = null; store.del(SESSION_KEY); }
     let menu = null;          // menu en cours d'édition
     let saved = '';           // dernière version enregistrée (texte), pour détecter les changements
     let savedItems = new Map(); // id -> texte de l'article enregistré, pour surligner ce qui a changé
@@ -225,7 +232,7 @@
     }
 
     async function api(body) {
-      const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password, ...body }) });
+      const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: session && session.token, ...body }) });
       let data = {};
       try { data = await res.json(); } catch (e) {}
       if (!res.ok) { const err = new Error(data.error || `Erreur ${res.status}`); err.status = res.status; throw err; }
@@ -240,16 +247,20 @@
       const err = $('[data-login-error]');
       err.hidden = !message;
       err.textContent = message || '';
-      setTimeout(() => $('[data-pw]').focus(), 50);
+      $('[data-who]').value = $('[data-who]').value || store.get(NAME_KEY) || '';
+      $('[data-pw]').value = '';
+      setTimeout(() => ($('[data-who]').value ? $('[data-pw]') : $('[data-who]')).focus(), 50);
     }
     $('[data-login-form]').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = $('[data-login-btn]');
-      password = $('[data-pw]').value;
       btn.disabled = true; btn.textContent = 'Vérification…';
       try {
-        await api({ action: 'check' });
-        store.set(PW_KEY, password);
+        const res = await api({ action: 'login', password: $('[data-pw]').value, name: $('[data-who]').value });
+        $('[data-pw]').value = '';
+        session = { token: res.token, exp: res.exp, name: res.name };
+        store.set(SESSION_KEY, JSON.stringify(session));
+        store.set(NAME_KEY, res.name);
         if (menu) {
           // Reconnexion en cours d'édition : on garde les modifications
           $('[data-login]').hidden = true;
@@ -265,7 +276,7 @@
     });
     document.querySelectorAll('[data-logout]').forEach((b) => b.addEventListener('click', () => {
       if (isDirty() && !confirm('Des modifications ne sont pas enregistrées. Quitter quand même ?')) return;
-      store.del(PW_KEY); password = ''; saved = JSON.stringify(menu); location.reload();
+      store.del(SESSION_KEY); session = null; saved = JSON.stringify(menu); location.reload();
     }));
 
     /* ---------- Choix du restaurant ---------- */
@@ -273,6 +284,7 @@
       $('[data-login]').hidden = true;
       $('[data-app]').hidden = true;
       $('[data-pick]').hidden = false;
+      $('[data-who-line]').textContent = session ? `Connecté : ${session.name}` : '';
       const last = store.get(SITE_KEY);
       document.querySelectorAll('[data-site]').forEach((b) => b.classList.toggle('is-last', b.dataset.site === last));
     }
@@ -585,7 +597,7 @@
           ? 'Enregistré, mais un des deux sites n’a pas pu être mis à jour. Prévenez le responsable.'
           : `Enregistré ✓ Le menu de ${SITES[site]} sera à jour dans environ 1 minute.`, partial.length > 0);
       } catch (err) {
-        if (err.status === 401) { store.del(PW_KEY); showLogin('Mot de passe incorrect. Reconnectez-vous (vos modifications sont gardées).'); }
+        if (err.status === 401) { store.del(SESSION_KEY); session = null; showLogin('Connexion expirée. Reconnectez-vous (vos modifications sont gardées).'); }
         else toast(err.message || 'Enregistrement impossible. Vérifiez la connexion internet.', true);
       } finally {
         btn.textContent = 'Enregistrer';
@@ -596,11 +608,7 @@
     addEventListener('beforeunload', (e) => { if (isDirty()) { e.preventDefault(); e.returnValue = ''; } });
 
     /* ---------- Démarrage ---------- */
-    if (password) {
-      api({ action: 'check' }).then(showPick).catch((err) => { if (err.status === 401) store.del(PW_KEY); showLogin(err.status === 401 ? '' : err.message); });
-    } else {
-      showLogin();
-    }
+    if (session) showPick(); else showLogin();
   })();
   </script>
 </body>
