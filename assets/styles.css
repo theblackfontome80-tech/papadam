@@ -800,3 +800,7 @@ body.intro-running { overflow: hidden; }
   .loc-switch__change { display: none; }
   .nav__link { padding: 10px 8px; }
 }
+
+/* ---------- Commande WhatsApp ---------- */
+.order-opt--wa .order-opt__icon { background: #25d366; color: #fff; }
+.order-opt--wa:hover { border-color: #1da851; }

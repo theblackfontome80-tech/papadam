@@ -265,6 +265,14 @@
       $('[data-order-item]', choice).textContent = item;
       $('[data-order-price]', choice).textContent = btn.dataset.price || '';
     }
+    // Lien WhatsApp avec un message déjà écrit (et le plat choisi s'il y en a un)
+    const wa = $('[data-wa]', orderDlg);
+    if (wa) {
+      const price = btn?.dataset.price;
+      const msg = 'Bonjour Papadam ' + (wa.dataset.waName || '') + ', je voudrais commander à emporter'
+        + (item ? ' : ' + item + (price ? ' (' + price + ')' : '') : '.');
+      wa.href = 'https://wa.me/' + wa.dataset.wa + '?text=' + encodeURIComponent(msg);
+    }
     if (typeof orderDlg.showModal === 'function') {
       orderDlg.showModal();
       document.body.classList.add('dialog-open');
