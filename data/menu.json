@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "updated": "2026-11-27",
+  "version": 1795807927820,
+  "updated": "2026-11-27T19:32:07.820Z",
   "categories": [
     {
       "id": "naan",
@@ -10,28 +10,28 @@
         {
           "id": "naan-chawarma",
           "name": "Naan Chawarma",
-          "price": 9.0,
+          "price": 9.5,
           "desc": "Chawarma de dinde tranché fin, crudités fraîches, roulé dans un naan tiède.",
+          "featured": true,
           "img": {
             "src": "/assets/img/naan-chawarma-900.webp",
             "srcset": "/assets/img/naan-chawarma-480.webp 480w, /assets/img/naan-chawarma-900.webp 900w",
             "w": 900,
             "h": 781
-          },
-          "featured": true
+          }
         },
         {
           "id": "naan-kebab-de-buf",
           "name": "Naan Kebab de Bœuf",
-          "price": 11.0,
+          "price": 11,
           "desc": "Kebab de bœuf grillé, crudités croquantes, naan moelleux. Le plus gourmand de la famille.",
+          "featured": true,
           "img": {
             "src": "/assets/img/hero-kebab-naan-640.webp",
             "srcset": "/assets/img/hero-kebab-naan-640.webp 640w",
             "w": 640,
             "h": 427
-          },
-          "featured": true
+          }
         },
         {
           "id": "naan-chich-taouk",
@@ -72,7 +72,7 @@
         {
           "id": "naan-poulet-pane",
           "name": "Naan Poulet Pané",
-          "price": 10.0,
+          "price": 10,
           "desc": "Poulet pané croustillant, crudités, naan tendre et légèrement grillé.",
           "img": {
             "src": "/assets/img/naan-papadam-wrap-900.webp",
@@ -91,29 +91,29 @@
         {
           "id": "cheese-naan-chawarma",
           "name": "Cheese Naan Chawarma",
-          "price": 10.0,
+          "price": 10,
           "desc": "Naan au fromage fondant et chawarma de dinde. Le plus demandé de la carte.",
           "badge": "Populaire",
+          "featured": true,
           "img": {
             "src": "/assets/img/cheese-chawarma-900.webp",
             "srcset": "/assets/img/cheese-chawarma-480.webp 480w, /assets/img/cheese-chawarma-900.webp 900w",
             "w": 900,
             "h": 788
-          },
-          "featured": true
+          }
         },
         {
           "id": "cheese-naan-kebab-de-buf",
           "name": "Cheese Naan Kebab de Bœuf",
-          "price": 12.0,
+          "price": 12,
           "desc": "Kebab de bœuf grillé dans un naan au fromage qui file.",
+          "featured": true,
           "img": {
             "src": "/assets/img/cheese-kebab-900.webp",
             "srcset": "/assets/img/cheese-kebab-480.webp 480w, /assets/img/cheese-kebab-900.webp 900w",
             "w": 900,
             "h": 807
-          },
-          "featured": true
+          }
         },
         {
           "id": "cheese-naan-chich-taouk",
@@ -154,7 +154,7 @@
         {
           "id": "cheese-naan-poulet-pane",
           "name": "Cheese Naan Poulet Pané",
-          "price": 11.0,
+          "price": 11,
           "desc": "Poulet pané croustillant, cœur de fromage fondant.",
           "img": {
             "src": "/assets/img/naan-papadam-wrap-900.webp",
@@ -185,34 +185,34 @@
         {
           "id": "plat-papadam",
           "name": "Plat Papadam",
-          "price": 28.0,
+          "price": 28,
           "desc": "Le plat signature : chawarma, escalope et cordon bleu réunis dans une seule assiette.",
           "badge": "Signature",
+          "featured": true,
           "img": {
             "src": "/assets/img/plat-papadam-634.webp",
             "srcset": "/assets/img/plat-papadam-480.webp 480w, /assets/img/plat-papadam-634.webp 634w",
             "w": 634,
             "h": 506
-          },
-          "featured": true
+          }
         },
         {
           "id": "plat-kebab-de-buf",
           "name": "Plat Kebab de Bœuf",
           "price": 23.5,
           "desc": "Kebab de bœuf grillé sur naan, salade, riz et frites.",
+          "featured": true,
           "img": {
             "src": "/assets/img/plat-kebab-703.webp",
             "srcset": "/assets/img/plat-kebab-480.webp 480w, /assets/img/plat-kebab-703.webp 703w",
             "w": 703,
             "h": 564
-          },
-          "featured": true
+          }
         },
         {
           "id": "plat-chawarma",
           "name": "Plat Chawarma",
-          "price": 19.0,
+          "price": 19,
           "desc": "Une belle portion de chawarma de dinde, salade, riz et frites.",
           "img": {
             "src": "/assets/img/plat-chawarma-480.webp",
@@ -236,7 +236,7 @@
         {
           "id": "plat-escalope-grillee",
           "name": "Plat Escalope Grillée",
-          "price": 20.0,
+          "price": 20,
           "desc": "Escalope de poulet grillée, salade, riz et frites.",
           "img": {
             "src": "/assets/img/plat-escalope-grillee-480.webp",
@@ -248,7 +248,7 @@
         {
           "id": "plat-cordon-bleu",
           "name": "Plat Cordon Bleu",
-          "price": 20.0,
+          "price": 20,
           "desc": "Cordon bleu croustillant, salade, riz et frites.",
           "img": {
             "src": "/assets/img/plat-cordon-bleu-633.webp",
@@ -260,7 +260,7 @@
         {
           "id": "plat-chich-taouk",
           "name": "Plat Chich Taouk",
-          "price": 20.0,
+          "price": 20,
           "desc": "Brochettes de poulet marinées et grillées, salade, riz et frites.",
           "img": {
             "src": "/assets/img/plat-chich-taouk-480.webp",
@@ -272,7 +272,7 @@
         {
           "id": "plat-nuggets",
           "name": "Plat Nuggets",
-          "price": 20.0,
+          "price": 20,
           "desc": "Nuggets de poulet croustillants, salade, riz et frites.",
           "img": {
             "src": "/assets/img/plat-nuggets-480.webp",
@@ -284,7 +284,7 @@
         {
           "id": "plat-poulet-grille",
           "name": "Plat Poulet Grillé",
-          "price": 20.0,
+          "price": 20,
           "desc": "Poulet grillé, salade, riz et frites.",
           "img": {
             "src": "/assets/img/plat-escalope-grillee-480.webp",
@@ -315,7 +315,7 @@
         {
           "id": "eau-minerale-1-2-l",
           "name": "Eau minérale 1/2 L",
-          "price": 1.0,
+          "price": 1,
           "desc": "Petite bouteille d'eau minérale.",
           "glyph": "water"
         },
